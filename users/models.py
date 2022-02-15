@@ -13,8 +13,8 @@ class User(Base):
         db_table = 'users'
 
 class UserLibrary(Base):
-    user_id    = models.ForeignKey(User, on_delete = models.SET_NULL)
-    book_id    = models.ForeignKey(Book, on_delete = models.SET_NULL)
+    user_id    = models.ForeignKey(User, on_delete = models.CASCADE)
+    book_id    = models.ForeignKey(Book, on_delete = models.CASCADE)
     bookmark   = models.PositiveSmallIntegerField()
     deleted_at = models.DateTimeField(null = True, default = None)
  
@@ -22,7 +22,7 @@ class UserLibrary(Base):
         db_table = 'user_libraries'
 
 class UserWallet(Base):
-    user_id = models.ForeignKey(User, on_delete = models.SET_NULL)
+    user_id = models.ForeignKey(User, on_delete = models.CASCADE)
     cash    = models.DecimalField(max_digits = 7, decimal_places = 2)
 
     class Meta:

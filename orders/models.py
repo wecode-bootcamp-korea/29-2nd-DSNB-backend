@@ -17,11 +17,11 @@ class PaymentMethod(models.Model):
         db_table = 'payment_methods'
 
 class Order(Base):
-    book_id        = models.ForeignKey(Book, on_delete = models.SET_NULL)
-    order_status   = models.ForeignKey(OrderStatus, on_delete = models.SET_NULL)
-    target_user_id = models.ForeignKey(User, on_delete = models.SET_NULL)
-    user_id        = models.ForeignKey(User, on_delete = models.SET_NULL)
-    payment_id     = models.ForeignKey(PaymentMethod, on_delete = models.SET_NULL)
+    book_id        = models.ForeignKey(Book, on_delete = models.CASCADE)
+    order_status   = models.ForeignKey(OrderStatus, on_delete = models.CASCADE)
+    target_user_id = models.ForeignKey(User, on_delete = models.CASCADE, related_name = 'target_user')
+    user_id        = models.ForeignKey(User, on_delete = models.CASCADE, related_name = 'origin_user')
+    payment_id     = models.ForeignKey(PaymentMethod, on_delete = models.CASCADE)
     ordered_at     = models.DateTimeField(auto_now_add = True)
     title          = models.CharField(max_length = 200)
     price          = models.DecimalField(max_digits = 7, decimal_places = 2)
