@@ -4,10 +4,11 @@ from core.models  import Base
 from books.models import Book
 
 class User(Base):
-    nickname   = models.CharField(max_length = 20)
-    email      = models.CharField(max_length = 250)
-    kakao_id   = models.CharField(max_length = 30)
-    deleted_at = models.DateTimeField(null = True, default = None)
+    nickname      = models.CharField(max_length = 20)
+    email         = models.CharField(max_length = 250)
+    kakao_id      = models.CharField(max_length = 30)
+    profile_image = models.URLField(max_length = 250, default = '')
+    deleted_at    = models.DateTimeField(null = True, default = None)
 
     class Meta:
         db_table = 'users'
