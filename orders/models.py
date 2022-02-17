@@ -23,9 +23,6 @@ class Order(Base):
     user           = models.ForeignKey(User, on_delete = models.CASCADE, related_name='origin_user')
     payment        = models.ForeignKey(PaymentMethod, on_delete = models.CASCADE, related_name='payment')
     ordered_at     = models.DateTimeField(auto_now_add = True)
-    title          = models.CharField(max_length = 200)
-    price          = models.DecimalField(max_digits = 7, decimal_places = 2)
-    link_url       = models.CharField(max_length = 250)
 
     class Meta:
         db_table = 'orders'

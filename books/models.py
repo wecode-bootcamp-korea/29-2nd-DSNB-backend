@@ -20,7 +20,7 @@ class Author(models.Model):
 
 class Book(Base):
     author       = models.ForeignKey(Author, on_delete=models.CASCADE, null=True)
-    catetory     = models.ForeignKey(Category, on_delete=models.CASCADE, null=True)
+    category     = models.ForeignKey(Category, on_delete=models.CASCADE, null=True)
     title        = models.CharField(max_length=100, blank=False)
     cover_image  = models.URLField(max_length=250, null = True)
     everage_rate = models.DecimalField(max_digits = 3, decimal_places = 2, null = True)
@@ -28,7 +28,7 @@ class Book(Base):
     class Meta:
         db_table = 'books'
 
-class BookDetail():
+class BookDetail(models.Model):
     publisher   = models.CharField(max_length=200, blank=False)
     public_date = models.DateTimeField(blank=False)
     isbn        = models.CharField(max_length=15, blank=False)
