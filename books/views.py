@@ -1,10 +1,9 @@
 import json
-from unittest import result
 
 from django.http import JsonResponse
 from django.db.models import Q
 
-from books.models import Author, Book, BookOption, Category
+from books.models import Book, BookOption, Category
 
 from django.views import View
 
@@ -108,6 +107,7 @@ class BookDetailView(View):
 
             book_data = book_data.get()
             author_write = Book.objects.filter(author_id = author_id).distinct().order_by('-updated_at')[:10]
+            
             result_data = dict()
             author_books = [
                 {
@@ -118,6 +118,7 @@ class BookDetailView(View):
                     "url"       : f"/books/book/{book.id}"
                 }for book in author_write
             ]
+
             result_data['book'] = {
                 "name"        : book_data.title,
                 "publisher"   : book_data.book_detail.publisher,
@@ -139,7 +140,16 @@ class BookDetailView(View):
             }
             result_data['author_write'] = author_books
             ##인기순 리뷰순으로 추가
+            
+            ##file 전송 추가할 부분
             result_data['result']   = 'success'
             return JsonResponse(result_data,status=200)
+
         except KeyError :
             return JsonResponse({"message": "KEY_ERROR"},status=400)
+
+class MainBookListView(View):
+    def get(self, request):
+        ##나라순 별로 그룹 지어서 json으로 증가
+        ##select * from books group by category_id order by rating DESC:
+        return JsonResponse(result,status = 200)
