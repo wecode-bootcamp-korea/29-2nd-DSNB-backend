@@ -9,7 +9,7 @@ class Review(Base):
     book       = models.ForeignKey(Book, on_delete=models.CASCADE, related_name='review_book')
     comment    = models.CharField(max_length=600)
     rating     = models.DecimalField(max_digits = 3, decimal_places = 2)
-    is_spoiler = models.BooleanField(default=0)
+    is_spoiler = models.BooleanField(default = False)
     
     class Meta:
         db_table = 'reviews'

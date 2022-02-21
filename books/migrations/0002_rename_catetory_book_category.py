@@ -8,11 +8,3 @@ class Migration(migrations.Migration):
     dependencies = [
         ('books', '0001_initial'),
     ]
-
-    operations = [
-        migrations.RenameField(
-            model_name='book',
-            old_name='catetory',
-            new_name='category',
-        ),
-    ]

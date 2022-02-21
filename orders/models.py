@@ -17,7 +17,7 @@ class PaymentMethod(models.Model):
         db_table = 'payment_methods'
 
 class Order(Base):
-    bookoption_id  = models.ForeignKey(BookOption, on_delete = models.CASCADE)
+    bookoption     = models.ForeignKey(BookOption, on_delete = models.CASCADE)
     order_status   = models.ForeignKey(OrderStatus, on_delete = models.CASCADE)
     target_user    = models.ForeignKey(User, on_delete = models.CASCADE, related_name='target_user')
     user           = models.ForeignKey(User, on_delete = models.CASCADE, related_name='origin_user')

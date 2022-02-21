@@ -50,16 +50,6 @@ class Migration(migrations.Migration):
             },
         ),
         migrations.CreateModel(
-            name='Category',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=50)),
-            ],
-            options={
-                'db_table': 'categories',
-            },
-        ),
-        migrations.CreateModel(
             name='BookOption',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
@@ -86,10 +76,5 @@ class Migration(migrations.Migration):
             options={
                 'db_table': 'book_files',
             },
-        ),
-        migrations.AddField(
-            model_name='book',
-            name='catetory',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, to='books.category'),
         ),
     ]

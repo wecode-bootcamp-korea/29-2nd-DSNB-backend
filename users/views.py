@@ -29,7 +29,7 @@ class KakaoLoginView(View):
                 email    = email,
                 defaults = {
                     'nickname'          : nickname,
-                    'profile_image_url' : profile_image
+                    'profile_image' : profile_image
                 }
             )
 
