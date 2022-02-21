@@ -24,6 +24,7 @@ class Book(Base):
     title        = models.CharField(max_length=100, blank=False)
     cover_image  = models.URLField(max_length=250, null = True)
     everage_rate = models.DecimalField(max_digits = 3, decimal_places = 2, null = True)
+    file_url     = models.URLField(max_length = 250, null = True) 
 
     class Meta:
         db_table = 'books'
