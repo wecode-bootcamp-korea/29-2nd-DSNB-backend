@@ -1,4 +1,4 @@
-import json
+import random
 
 from django.http      import JsonResponse
 
@@ -9,7 +9,6 @@ from books.models   import Book, BookOption, Category
 from django.views   import View
 
 class BookListView(View):
-    
     def make_booklist(self, book_objects):
         book_list = [{
                 "book_id"      : book.id,
@@ -134,9 +133,7 @@ class BookDetailView(View):
             return JsonResponse({"message": "KEY_ERROR"},status=400)
 
 class BookRankView(View):
-
     def make_rank_list(self, book_rank_list):
-
         book_rank_dict = [
             {
                 "num"          : index + 1,
@@ -164,3 +161,67 @@ class BookRankView(View):
 
         except Book.DoesNotExist:
             return JsonResponse({"message" : "books_are_not_exists"}, status=404)
+
+class LocationView(View):
+    def get(self,request):
+        locations = Category.objects.all()
+        result = [{
+            'id'        : location.id,
+            'name'      : location.country,
+            'latitude'  : location.latitude,
+            'longitude' : location.longitude
+        }for location in locations]
+
+        return JsonResponse({'message' : result}, status = 200)
+
+class SlideView(View):
+    def get(self,request):
+        category  = request.GET.get('category', None)
+
+        books = Book.objects.filter(category_id__country = category).order_by('?')
+        result = [{
+            'id'       : book.id,
+            'title'    : book.title,
+            'author'   : book.author.name,
+            'category' : book.category.name,
+            'image'    : book.cover_image
+        }for book in books]
+        
+        return JsonResponse({
+                'message' : 'SUCCESS',
+                'result'  : result
+            }, status = 200)
+
+class SearchView(View):
+    def get(self, request):
+        try:
+            search = request.GET.get('search')
+            books  = Book.objects.filter(Q(title__icontains = search) | Q(author__name__icontains = search))
+
+            result = [{
+                'title'  : book.title,
+                'author' : book.author.name
+            }for book in books]
+
+            return JsonResponse({'message' : 'SUCCESS', 'result' : result})
+
+        except Book.DoesNotExist:
+            return JsonResponse({'message' : 'NO_BOOK'}, status = 400)
+
+class BestSellerView(View):
+    def get(self, request):
+        limit    = int(request.GET.get('limit' , 11))
+        offset   = int(request.GET.get('offset', 0))
+
+        books  = Book.objects.all().order_by('?')[offset : offset+limit]
+
+        result = [{
+            'id'           : book.id,
+            'title'        : book.title,
+            'author'       : book.author.name,
+            'cover_image'  : book.cover_image,
+            'everage_rate' : book.everage_rate,
+            'reviews'      : random.randrange(1, 40)
+        }for book in books]
+
+        return JsonResponse({'message' : 'SUCCESS', 'result' : result}, status = 200)
