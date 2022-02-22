@@ -60,7 +60,7 @@ class UserLibraryView(View):
         user = request.user
         books = UserLibrary.objects.filter(user = user)
         result = [{
-            'book_id'     : book.id,
+            'book_id'     : book.book_id,
             'title'       : book.book.title,
             'author'      : book.book.author.name,
             'bookmark'    : book.bookmark,
@@ -85,14 +85,16 @@ class UserLibraryView(View):
             return JsonResponse({'message' : 'KEY_ERROR'}, status = 400)
 
 class LibrarySearchView(View):
+    @login_required
     def get(self, request):
         try:
+            user   = request.user
             search = request.GET.get('search')
-            books  = Book.objects.filter(Q(title__icontains = search) | Q(author__name__icontains = search))
+            books  = UserLibrary.objects.filter(Q(book__title__icontains = search) | Q(book__author__name__icontains = search), user_id = user)
 
             result = [{
-                'title'  : book.title,
-                'author' : book.author.name
+                'title'  : book.book.title,
+                'author' : book.book.author.name
             }for book in books]
 
             return JsonResponse({'message' : 'SUCCESS', 'result' : result})
