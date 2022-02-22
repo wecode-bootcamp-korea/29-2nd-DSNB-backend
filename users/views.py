@@ -60,6 +60,7 @@ class UserLibraryView(View):
         user = request.user
         books = UserLibrary.objects.filter(user = user)
         result = [{
+            'book_id'     : book.id,
             'title'       : book.book.title,
             'author'      : book.book.author.name,
             'bookmark'    : book.bookmark,
