@@ -1,7 +1,9 @@
 import json
 
 from django.http      import JsonResponse
-from django.db.models import Q, Count , Max
+
+from django.db.models import Q, F, Count , Max , Window
+from django.db.models.functions import Rank
 
 from books.models   import Book, BookOption, Category
 from django.views   import View
@@ -83,22 +85,14 @@ class BookDetailView(View):
     def get(self, request, **kwargs):
         try :
             book_id     = kwargs.get('book_id', None)
-            
-            book_data   = Book.objects.filter(id = book_id).\
-                        select_related('book_detail')
-            author_data = book_data.\
-                        select_related('author').get()
+            book_data   = Book.objects.filter(id = book_id).select_related('book_detail')
+            author_data = book_data.select_related('author').get()
             
             if not book_data.exists():
                 return JsonResponse({"message" : "INVALID_BOOK"}, status=404)
             
-            book_options = BookOption.objects.filter(book_id = book_id).\
-                            select_related('option')\
-                            .all()
-
-            author_write = Book.objects.filter(author_id = author_data.id).\
-                            distinct().\
-                            order_by('-updated_at')[:10]
+            book_options = BookOption.objects.filter(book_id = book_id).select_related('option').all()
+            author_write = Book.objects.filter(author_id = author_data.id).distinct().order_by('-updated_at')[:10]
             book_data    = book_data.get()
 
             result_data = dict()
@@ -138,3 +132,35 @@ class BookDetailView(View):
             return JsonResponse(result_data,status=200)
         except KeyError :
             return JsonResponse({"message": "KEY_ERROR"},status=400)
+
+class BookRankView(View):
+
+    def make_rank_list(self, book_rank_list):
+
+        book_rank_dict = [
+            {
+                "num"          : index + 1,
+                "rank"         : rankbook.rank,
+                "book_id"      : rankbook.id,
+                "title"        : rankbook.title,
+                "reveiw_count" : rankbook.review_count
+            }for index, rankbook in enumerate(book_rank_list)
+        ]
+        return book_rank_dict
+    
+    def get(self, request, **kwargs):
+        try:
+            rank_books = Book.objects\
+                        .annotate(review_count = Count('review_book'))\
+                        .annotate(
+                            rank = Window(expression=Rank(), order_by = F('review_count'
+                            ).desc()))\
+                        .all()[:10]
+
+            result_data          = dict()
+            result_data['ranks'] = self.make_rank_list(rank_books)
+            
+            return JsonResponse(result_data, status=200)
+
+        except Book.DoesNotExist:
+            return JsonResponse({"message" : "books_are_not_exists"}, status=404)
