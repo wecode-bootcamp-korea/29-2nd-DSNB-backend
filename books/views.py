@@ -62,14 +62,14 @@ class NavCategoryView(View):
             {
                 "id"    : category.id,
                 "name"  : category.name,
-                "url"   : f"books/{category.id}"
+                "url"   : f"books/nation/{category.id}"
             }for category in categories
         ]
 
         category_list.insert(0, 
             {
                 "name" : "전체 보기",
-                "url"  : "books"
+                "url"  : "books/nation"
             }
         )
         return category_list
