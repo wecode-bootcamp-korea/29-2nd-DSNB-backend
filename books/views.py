@@ -1,11 +1,13 @@
 import json
 
 from django.http      import JsonResponse
-from django.db.models import Q, Count , Max
+
+from django.db.models import Q, F, Count , Max , Window
+from django.db.models.functions import Rank
 
 from books.models   import Book, BookOption, Category
 from django.views   import View
-
+]
 class BookListView(View):
     
     def make_booklist(self, book_objects):
@@ -54,13 +56,9 @@ class BookListView(View):
             return JsonResponse({"message" : "KEY_ERROR"},status = 400)
 
 class NavCategoryView(View):
-    def get(self, reqeust):
-        categories  = Category.objects.all()
-        
-        if categories.count() == 0 :
-            return JsonResponse({'message' :  'NO_ASSET'}, status = 404)
-        
-        result_data   = dict()
+    
+    def make_nav_list(self, categories):
+        category_list = list()
         category_list = [
             {
                 "id"    : category.id,
@@ -75,31 +73,36 @@ class NavCategoryView(View):
                 "url"  : "books"
             }
         )
-        result_data['categories'] = category_list
+        return category_list
+    
+    def get(self, reqeust):
+        categories = Category.objects.all()
+        
+        if categories.count() == 0 :
+            return JsonResponse({'message' : 'NO_ASSET'}, status = 404)
+        
+        result_data = dict()
+        result_data['categories'] = self.make_nav_list(categories)
         result_data['result']     = 'success'
+        result_data['order']      = [ ## 프론트 요청
+            {"name" : "가격 낮은 순" , "keyword" : 'lowprice'},
+            {"name" : "가격 높은 순" , "keyword" : 'highprice'},
+            {"name" : "출판 순" , "keyword" : 'latest'},
+            {"name" : "리뷰 순" , "keyword" : 'review'},
+        ]
         return JsonResponse(result_data,status=200)
 
 class BookDetailView(View):
-    def get(self, request, **kwargs):
-        try :
-            book_id     = kwargs.get('book_id', None)
-            
-            book_data   = Book.objects.filter(id = book_id).\
-                        select_related('book_detail')
-            author_data = book_data.\
-                        select_related('author').get()
-            
-            if not book_data.exists():
-                return JsonResponse({"message" : "INVALID_BOOK"}, status=404)
-            
-            book_options = BookOption.objects.filter(book_id = book_id).\
-                            select_related('option')\
-                            .all()
 
-            author_write = Book.objects.filter(author_id = author_data.id).\
-                            distinct().\
-                            order_by('-updated_at')[:10]
-            book_data    = book_data.get()
+    def calc_discount_price(self, book_option_price , discount_percent):
+        return float(book_option_price) * (1 - float(discount_percent) * 0.01)
+
+    def get(self, request, book_id):
+        try:
+            book  = Book.objects.get(id = book_id)
+            author = book.author
+            book_options = BookOption.objects.filter(book = book_id)
+            books_by_author = Book.objects.filter(author = book.author.id).all()
 
             result_data = dict()
             author_books = [
@@ -109,32 +112,65 @@ class BookDetailView(View):
                     "img"       : book.cover_image,
                     "rating"    : book.everage_rate,
                     "url"       : f"/books/book/{book.id}"
-                }for book in author_write
+                }for book in books_by_author
             ]
             result_data['book'] = {
-                "name"        : book_data.title,
-                "img"         : book_data.cover_image,
-                "publisher"   : book_data.book_detail.publisher,
-                "public_date" : book_data.book_detail.public_date,
-		        "rating"      : book_data.everage_rate,
-                "file_url"    : book_data.file_url,
+                "name"        : book.title,
+                "img"         : book.cover_image,
+                "publisher"   : book.book_detail.publisher,
+                "public_date" : book.book_detail.public_date,
+		        "rating"      : book.everage_rate,
+                "file_url"    : book.file_url,
                 "book_option" : [
                     {
                         "id"          : option.id,
                         "name"        : option.option.name,
                         "price"       : option.price,
-                        "dis_price"   : float(option.price) * (float(option.discount) * (1 - 0.01)),
+                        "dis_price"   : self.calc_discount_price(option.price, option.discount),
                         "discount"    : option.discount,
                         "is_discount" : option.is_discount
                     }for option in book_options
                 ],
                 "author" : {
-                    "name"    : author_data.author.name,
-                    "intro"   : author_data.author.introduction
+                    "name"  : author.name,
+                    "intro" : author.introduction
                 }
             }
             result_data['author_write'] = author_books
             result_data['result']       = 'success'
             return JsonResponse(result_data,status=200)
-        except KeyError :
+
+        except KeyError:
             return JsonResponse({"message": "KEY_ERROR"},status=400)
+
+class BookRankView(View):
+
+    def make_rank_list(self, book_rank_list):
+
+        book_rank_dict = [
+            {
+                "num"          : index + 1,
+                "rank"         : rankbook.rank,
+                "book_id"      : rankbook.id,
+                "title"        : rankbook.title,
+                "reveiw_count" : rankbook.review_count
+            }for index, rankbook in enumerate(book_rank_list)
+        ]
+        return book_rank_dict
+    
+    def get(self, request, **kwargs):
+        try:
+            rank_books = Book.objects\
+                        .annotate(review_count = Count('review_book'))\
+                        .annotate(
+                            rank = Window(expression=Rank(), order_by = F('review_count'
+                            ).desc()))\
+                        .all()[:10]
+
+            result_data          = dict()
+            result_data['ranks'] = self.make_rank_list(rank_books)
+            
+            return JsonResponse(result_data, status=200)
+
+        except Book.DoesNotExist:
+            return JsonResponse({"message" : "books_are_not_exists"}, status=404)
