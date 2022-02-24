@@ -113,6 +113,7 @@ class BookDetailView(View):
                 }for book in books_by_author
             ]
             result_data['book'] = {
+                "book_id"     : book.id,
                 "name"        : book.title,
                 "img"         : book.cover_image,
                 "publisher"   : book.book_detail.publisher,
@@ -123,7 +124,7 @@ class BookDetailView(View):
                     {
                         "id"          : option.id,
                         "name"        : option.option.name,
-                        "price"       : option.price,
+                        "price"       : float(option.price),
                         "dis_price"   : self.calc_discount_price(option.price, option.discount),
                         "discount"    : option.discount,
                         "is_discount" : option.is_discount

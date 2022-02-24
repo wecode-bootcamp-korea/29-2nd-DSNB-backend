@@ -32,7 +32,8 @@ class KakaoLoginView(View):
                 }
             )
 
-            UserWallet.objects.create(user_id = user.id , cash = 90000)
+            user, created = UserWallet.objects.filter(user_id = user.id).\
+                            update_or_create(user_id = user.id , cash = 90000)
 
             result = {
                 'name'              : nickname,
