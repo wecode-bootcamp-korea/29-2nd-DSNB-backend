@@ -55,13 +55,9 @@ class BookListView(View):
             return JsonResponse({"message" : "KEY_ERROR"},status = 400)
 
 class NavCategoryView(View):
-    def get(self, reqeust):
-        categories  = Category.objects.all()
-        
-        if categories.count() == 0 :
-            return JsonResponse({'message' :  'NO_ASSET'}, status = 404)
-        
-        result_data   = dict()
+    
+    def make_nav_list(self, categories):
+        category_list = list()
         category_list = [
             {
                 "id"    : category.id,
@@ -76,8 +72,23 @@ class NavCategoryView(View):
                 "url"  : "books"
             }
         )
-        result_data['categories'] = category_list
+        return category_list
+    
+    def get(self, reqeust):
+        categories = Category.objects.all()
+        
+        if categories.count() == 0 :
+            return JsonResponse({'message' : 'NO_ASSET'}, status = 404)
+        
+        result_data = dict()
+        result_data['categories'] = self.make_nav_list(categories)
         result_data['result']     = 'success'
+        result_data['order']      = [ ## 프론트 요청
+            {"name" : "가격 낮은 순" , "keyword" : 'lowprice'},
+            {"name" : "가격 높은 순" , "keyword" : 'highprice'},
+            {"name" : "출판 순" , "keyword" : 'latest'},
+            {"name" : "리뷰 순" , "keyword" : 'review'},
+        ]
         return JsonResponse(result_data,status=200)
 
 class BookDetailView(View):
