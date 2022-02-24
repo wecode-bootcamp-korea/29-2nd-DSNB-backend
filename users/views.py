@@ -8,9 +8,8 @@ from django.http      import JsonResponse
 from django.conf      import settings
 from django.db.models import Q
 
-from users.models     import UserLibrary
+from users.models     import User, UserLibrary, UserWallet
 from books.models     import Book
-from users.models     import User
 from users.utils      import login_required
 
 class KakaoLoginView(View):
@@ -28,10 +27,12 @@ class KakaoLoginView(View):
                 kakao_id = kakao_id,
                 email    = email,
                 defaults = {
-                    'nickname'          : nickname,
+                    'nickname'      : nickname,
                     'profile_image' : profile_image
                 }
             )
+
+            UserWallet.objects.create(user_id = user.id , cash = 90000)
 
             result = {
                 'name'              : nickname,
